@@ -1,123 +1,73 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>GirlStore | Maquillaje & Cosméticos</title>
-  <link rel="stylesheet" href="css/home.css">
-  <link rel="shortcut icon" href="../resource/img/maquillaje.png" type="image/x-icon">
+  <link rel="shortcut icon" href="{{ url_for('static', filename='img/maquillaje.png') }}" type="image/x-icon">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
-  <header class="site-header">
-    <div class="header-inner">
-      <h1 class="logo">GirlStore</h1>
-      <nav class="nav-menu">
-        <a href="#hero">Inicio</a>
-        <a href="#section-trendy">Trendy</a>
-        <a href="#section-montoc">Montoc</a>
-        <a href="#section-milagros">Milagros</a>
-      </nav>
-      <div class="header-cart">
-        <button id="cart-btn">🛒 <span id="cart-count">0</span></button>
-      </div>
-    </div>
+  <!-- HEADER -->
+  <header id="header">
+    <div class="logo">GirlStore</div>
+    <nav>
+      <a href="#hero" class="nav-link">Inicio</a>
+      <a href="#trendy" class="nav-link">Trendy</a>
+      <a href="#montoc" class="nav-link">Montoc</a>
+      <a href="#milagros" class="nav-link">Milagros</a>
+      <a href="#" class="nav-link">Iniciar Sesión</a>
+    </nav>
+    <button class="cart-btn" id="cart-btn"><i class="fa-solid fa-cart-shopping"></i> <span id="cart-count">0</span> Carrito</button>
   </header>
 
-  <main>
-    <!-- Hero con carrusel de ofertas de Trendy -->
-    <section class="hero" id="hero">
-      <div class="carousel">
-        <div class="carousel-inner">
-          <!-- Imágenes reales de ofertas de Trendy sacadas de su web -->
-          <img src="https://b2ctrendy.vtexassets.com/arquivos/ids/160805-800-auto?v=638786795911430000&width=800&height=auto&aspect=true" alt="Tinta Gloss Jack Dy2159">
-          <img src="https://b2ctrendy.vtexassets.com/arquivos/ids/159875-800-auto?v=638772158219530000&width=800&height=auto&aspect=true" alt="Borlas Intensamente Ref Dy2140">
-          <img src="https://b2ctrendy.vtexassets.com/arquivos/ids/159418-800-auto?v=638749903055500000&width=800&height=auto&aspect=true" alt="Base Mousse Ref BMT1675">
-        </div>
-      </div>
-    </section>
+  <!-- HERO -->
+  <section class="hero" id="hero">
+    <div class="hero-content">
+      <h1>Descubre tu Belleza</h1>
+      <p>Maquillaje, estilo y confianza en un solo lugar. Vive la experiencia GirlStore.</p>
+      <button onclick="smoothScrollTo('#trendy')">Comenzar</button>
+    </div>
+  </section>
 
-    <!-- Sección Trendy -->
-    <section class="brand-block" id="section-trendy">
-      <h2>Trendy</h2>
-      <div class="products">
-        <!-- Tomo ejemplos reales de “Ofertas de la semana” de Trendy -->
-        <div class="product">
-          <img src="https://cdn.maquillajetrendyshop.com/2023/09/kit-brochas-marmol-luxury-kl11.jpg" alt="Kit Brochas Luxury Trendy">
-          <h3>Kit Brochas Mármol Luxury</h3>
-          <p class="price">COP $40.000</p>
-          <button class="add-to-cart" data-name="Kit Brochas Luxury Trendy" data-price="40000">Agregar al carrito</button>
-        </div>
-        <div class="product">
-          <img src="https://cdn.maquillajetrendyshop.com/2023/09/kit-6-sombras-liquid-cosmic-ce02.jpg" alt="Kit Sombras Líquidas Cosmic Trendy">
-          <h3>Kit 6 Sombras Líquidas Cosmic</h3>
-          <p class="price">COP $18.000</p>
-          <button class="add-to-cart" data-name="Kit Sombras Líquidas Cosmic Trendy" data-price="18000">Agregar al carrito</button>
-        </div>
-        <div class="product">
-          <img src="https://cdn.maquillajetrendyshop.com/2023/08/pestaninas-trendy-set-glam-lashes-ptn745.jpg" alt="Set Glam Lashes Trendy">
-          <h3>Set Glam Lashes Trendy</h3>
-          <p class="price">COP $15.000</p>
-          <button class="add-to-cart" data-name="Set Glam Lashes Trendy" data-price="15000">Agregar al carrito</button>
-        </div>
-        <!-- Puedes agregar más productos similares -->
-      </div>
-    </section>
+  <!-- TRENDY -->
+  <section id="trendy" data-animate>
+    <h2>Trendy</h2>
+    <div class="products"></div>
+  </section>
 
-    <!-- Sección Montoc (ejemplo minimal) -->
-    <section class="brand-block" id="section-montoc">
-      <h2>Montoc</h2>
-      <div class="products">
-        <!-- Ejemplos de Montoc si tienes imágenes -->
-        <div class="product">
-          <img src="https://trendymakeup.com.mx/wp-content/uploads/2022/09/montoc-base-liquida.jpg" alt="Base Montoc">
-          <h3>Base Líquida Montoc</h3>
-          <p class="price">COP $30.000</p>
-          <button class="add-to-cart" data-name="Base Líquida Montoc" data-price="30000">Agregar al carrito</button>
-        </div>
-        <div class="product">
-          <img src="https://trendymakeup.com.mx/wp-content/uploads/2022/09/montoc-labial-mate.jpg" alt="Labial Montoc">
-          <h3>Labial Mate Montoc</h3>
-          <p class="price">COP $22.000</p>
-          <button class="add-to-cart" data-name="Labial Mate Montoc" data-price="22000">Agregar al carrito</button>
-        </div>
-      </div>
-    </section>
+  <!-- MONTOC -->
+  <section id="montoc" data-animate>
+    <h2>Montoc</h2>
+    <div class="products"></div>
+  </section>
 
-    <!-- Sección Milagros -->
-    <section class="brand-block" id="section-milagros">
-      <h2>Milagros</h2>
-      <div class="products">
-        <div class="product">
-          <img src="https://milagrosbeauty.com/wp-content/uploads/2023/01/milagros-iluminador.jpg" alt="Iluminador Milagros">
-          <h3>Iluminador Milagros</h3>
-          <p class="price">COP $28.000</p>
-          <button class="add-to-cart" data-name="Iluminador Milagros" data-price="28000">Agregar al carrito</button>
-        </div>
-        <div class="product">
-          <img src="https://milagrosbeauty.com/wp-content/uploads/2023/01/milagros-blush.jpg" alt="Blush Milagros">
-          <h3>Blush Rosado Milagros</h3>
-          <p class="price">COP $24.000</p>
-          <button class="add-to-cart" data-name="Blush Rosado Milagros" data-price="24000">Agregar al carrito</button>
-        </div>
-      </div>
-    </section>
-  </main>
+  <!-- MILAGROS -->
+  <section id="milagros" data-animate>
+    <h2>Milagros</h2>
+    <div class="products"></div>
+  </section>
 
-  <!-- Carrito modal -->
-  <div id="cart-modal" class="cart-modal hidden">
-    <div class="modal-overlay"></div>
-    <div class="modal-content">
+  <!-- CARRITO -->
+  <div id="cart-modal">
+    <div class="cart-content">
       <h2>Tu Carrito</h2>
       <ul id="cart-items"></ul>
       <p id="total">Total: COP $0</p>
-      <div class="modal-buttons">
+      <div class="cart-actions">
         <button id="buy-btn">Comprar</button>
-        <button id="clear-cart">Limpiar Carrito</button>
+        <button id="clear-cart">Vaciar</button>
         <button id="close-cart">Cerrar</button>
       </div>
     </div>
   </div>
 
-  <script src="../templates/js/home.js"></script>
+  <footer>
+    © 2025 GirlStore. Todos los derechos reservados.
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/home.js') }}"></script>
 </body>
 </html>

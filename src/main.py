@@ -3,15 +3,14 @@ from service.connection import ConnectionDB
 import flask_cors
 from flask import Flask, request, redirect, render_template, url_for, session, flash, jsonify
 
-
-
-
 app = Flask(__name__)
 app.secret_key = "GirlStore"
 flask_cors.CORS(app)
 
+dbconection = ConnectionDB() 
+
 @app.errorhandler(404)
-def PaginaNoEncontrada(error):
+def PaginaNoEncontrada(error): 
     return redirect("/home")
 
 @app.route("/")
@@ -25,6 +24,11 @@ def login():
 @app.route("/home")
 def home():
     return render_template("home.html")
+
+@app.route("/ProdCat", methods=["GET"])
+def ProdCat():
+    res = dbconection.get_cat_products()
+    return jsonify(res)
 
 
 if __name__ == "__main__":

@@ -1,42 +1,61 @@
 import mysql.connector as MsqlCon
 
 class ConnectionDB:
-    def __init__(self, user:str="", pwd:str="", host:str="", db:str="", port:str=""):
-        self.conn   = None
-        if user == "" or host == "" or db == "" or port == "":
-            print("Faltan datos para la coneccion")
-        else:
-            self.user   = user
-            self.pwd    = pwd
-            self.host   = host
-            self.db     = db
-            self.port   = port
-            self.start_connection_db()
+    def __init__(self):
+        self.cursor = None
 
-    def start_connection_db(self, *args):
+    def get_data_conection(self):
+        return {
+            "dataBaseInfo": {
+                "user": "root",
+                "pwd": "",
+                "server": "localhost",
+                "port": "3306",
+                "dataBase": "GirlStore"
+            }
+        }
+
+    def iniciarConexion(self):
+        dataConnecton = self.get_data_conection()
         conn = MsqlCon.connect(
-            user        =   self.user,
-            password    =   self.pwd,
-            host        =   self.host,
-            database    =   self.db,
-            port        =   self.port
+            user=dataConnecton['dataBaseInfo']['user'],
+            password=dataConnecton['dataBaseInfo']['pwd'],
+            host=dataConnecton['dataBaseInfo']['server'],
+            database=dataConnecton['dataBaseInfo']['dataBase'],
+            port=dataConnecton['dataBaseInfo']['port']
         )
+        print(conn)
+        self.cursor = conn.cursor()
+        return conn, self.cursor
 
-        if conn:
-            print(f"Conectado a la base de datos correctamente -> {conn=}")
-            self.conn = conn
-        else:
-            print("Error al conectar")
-            self.conn = None
-        
+    def doQuery(self, cursor, query: str, params=()) -> dict:
+        try:
+            if params:
+                cursor.execute(query, params)
+            else:
+                cursor.execute(query)
+            resultado = cursor.fetchall()
+            return resultado
+        except Exception as e:
+            print(f"Error: {e}")
+            return {"error": str(e)}
 
+    def get_cat_products(self, *args):
+        conn, cursor = self.iniciarConexion()
+        fullcat = None
+        try:
+            fullcat = self.doQuery(cursor, query="""
+                SELECT p.Id_producto, p.Name_product, p.Img, p.Price, p.IsActive,
+                       c.Id_cat, c.Id_catalogo, c.Name_catalogo
+                FROM Catalogo c
+                LEFT JOIN Productos p ON c.Id_cat = p.Id_cat;
+            """)
+        except Exception as e:
+            print(f"Error: {e}")
+        finally:
+            conn.close()
+            return fullcat
 
 if __name__ == "__main__":
-    con = ConnectionDB(
-        user    =   "root",
-        pwd     =   "",
-        host    =   "localhost",
-        db      =   "GirlStore",
-        port    =   "3306"
-    )        
-        
+    con = ConnectionDB()
+    res = con.get_cat_products()
