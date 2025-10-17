@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Registro | GirlStore</title>
+  <link rel="shortcut icon" href="{{ url_for('static', filename='img/maquillaje.png') }}" type="image/x-icon">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/registro.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+  <!-- HEADER -->
+  <header id="header">
+    <div class="logo">GirlStore</div>
+    <nav>
+      <a href="{{ url_for('home') }}">Inicio</a>
+      <a href="{{ url_for('login') }}">Iniciar Sesión</a>
+    </nav>
+    <button class="cart-btn" id="cart-btn">
+      <i class="fa-solid fa-cart-shopping"></i>
+      <span id="cart-count">0</span> Carrito
+    </button>
+  </header>
+
+  <!-- REGISTRO -->
+  <section id="Registro">
+    <div class="register-wrapper">
+      <div class="register-card" data-animate>
+        <h2>Crear Cuenta</h2>
+        <p class="subtitle">Únete a <strong>GirlStore</strong> y descubre lo mejor en cosméticos</p>
+
+        <form action="{{ url_for('registro') }}" method="POST" class="register-form">
+          <div class="form-group">
+            <label for="usuario">Usuario</label>
+            <input type="text" id="usuario" name="usuario" placeholder="Tu nombre de usuario" required>
+          </div>
+
+          <div class="form-group">
+            <label for="telefono">Teléfono</label>
+            <input type="tel" id="telefono" name="telefono" placeholder="Tu número de teléfono" required>
+          </div>
+
+          <div class="form-group">
+            <label for="email">Correo electrónico</label>
+            <input type="email" id="email" name="email" placeholder="Tu correo electrónico" required>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Contraseña</label>
+            <input type="password" id="password" name="password" placeholder="Crea una contraseña" required>
+          </div>
+
+          <div class="form-group">
+            <label for="direccion">Dirección</label>
+            <input type="text" id="direccion" name="direccion" placeholder="Tu dirección completa" required>
+          </div>
+
+          <!-- Campo oculto -->
+          <input type="hidden" name="user_type" value="0">
+
+          <button type="submit" class="btn-register">Registrarme</button>
+
+          <p class="login-text">
+            ¿Ya tienes cuenta?
+            <a href="{{ url_for('login') }}">Inicia sesión</a>
+          </p>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    © 2025 GirlStore. Todos los derechos reservados.
+  </footer>
+</body>
+</html>

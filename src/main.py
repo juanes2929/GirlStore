@@ -17,9 +17,37 @@ def PaginaNoEncontrada(error):
 def tologin():
     return redirect("/home")
 
-@app.route("/login")
+
+
+@app.route("/login", methods=['POST','GET'])
 def login():
-    pass
+    match request.method:
+        case "GET":
+            return render_template("login.html")
+        case "POST":
+            user = request.form.get("email", "").strip()
+            passw = request.form.get("password", "").strip()
+
+            if not user or not passw:
+                return jsonify({"success": False, "message": "Campos vacíos"})
+
+            resU = dbconection.get_users()
+
+            # Validar que el email esté en los resultados
+            email_encontrado = False
+            for u in resU:
+                if u[3] == user:
+                    email_encontrado = True
+                    break
+
+            if not email_encontrado:
+                return jsonify({"success": False, "message": "El correo no está registrado"})
+
+            return jsonify({"success": True, "message": "Inicio de sesión exitoso"})
+
+@app.route("/registro", methods=['POST','GET'])
+def registro():
+    return render_template("registro.html")
 
 @app.route("/home")
 def home():
@@ -29,7 +57,6 @@ def home():
 def ProdCat():
     res = dbconection.get_cat_products()
     return jsonify(res)
-
 
 if __name__ == "__main__":
     app.run(debug=True,host='0.0.0.0',port=9000)

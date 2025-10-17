@@ -17,16 +17,19 @@ class ConnectionDB:
 
     def iniciarConexion(self):
         dataConnecton = self.get_data_conection()
-        conn = MsqlCon.connect(
-            user=dataConnecton['dataBaseInfo']['user'],
-            password=dataConnecton['dataBaseInfo']['pwd'],
-            host=dataConnecton['dataBaseInfo']['server'],
-            database=dataConnecton['dataBaseInfo']['dataBase'],
-            port=dataConnecton['dataBaseInfo']['port']
-        )
-        print(conn)
-        self.cursor = conn.cursor()
-        return conn, self.cursor
+        try:
+            conn = MsqlCon.connect(
+                user=dataConnecton['dataBaseInfo']['user'],
+                password=dataConnecton['dataBaseInfo']['pwd'],
+                host=dataConnecton['dataBaseInfo']['server'],
+                database=dataConnecton['dataBaseInfo']['dataBase'],
+                port=dataConnecton['dataBaseInfo']['port']
+            )
+            print(conn)
+            self.cursor = conn.cursor()
+            return conn, self.cursor
+        except Exception as e:
+            print(f"{self.__class__.__name__}: Problemas de conexion")
 
     def doQuery(self, cursor, query: str, params=()) -> dict:
         try:
@@ -40,21 +43,39 @@ class ConnectionDB:
             print(f"Error: {e}")
             return {"error": str(e)}
 
-    def get_cat_products(self, *args):
-        conn, cursor = self.iniciarConexion()
-        fullcat = None
+    def get_users(self, *args):
         try:
-            fullcat = self.doQuery(cursor, query="""
-                SELECT p.Id_producto, p.Name_product, p.Img, p.Price, p.IsActive,
-                       c.Id_cat, c.Id_catalogo, c.Name_catalogo
-                FROM Catalogo c
-                LEFT JOIN Productos p ON c.Id_cat = p.Id_cat;
-            """)
+            conn, cursor = self.iniciarConexion()
+            fullUsers = None
+            try:
+                fullUsers = self.doQuery(cursor=cursor, query=""" SELECT * FROM users; """)
+
+            except Exception as e:
+                print(e)
+            finally:
+                conn.close()
+                return fullUsers
         except Exception as e:
-            print(f"Error: {e}")
-        finally:
-            conn.close()
-            return fullcat
+            print(f"{self.__class__.__name__}: Problemas al consultar")
+
+    def get_cat_products(self, *args):
+        try:
+            conn, cursor = self.iniciarConexion()
+            fullcat = None
+            try:
+                fullcat = self.doQuery(cursor, query="""
+                    SELECT p.Id_producto, p.Name_product, p.Img, p.Price, p.IsActive,
+                        c.Id_cat, c.Id_catalogo, c.Name_catalogo
+                    FROM Catalogo c
+                    LEFT JOIN Productos p ON c.Id_cat = p.Id_cat;
+                """)
+            except Exception as e:
+                print(f"Error: {e}")
+            finally:
+                conn.close()
+                return fullcat
+        except Exception as e:
+            print(f"{self.__class__.__name__}: Problemas al consultar")
 
 if __name__ == "__main__":
     con = ConnectionDB()
