@@ -241,15 +241,6 @@ Puedes abrirlos en una pestaña o descargar desde el navegador.
 
 ---
 
-## Mejoras recomendadas (para producción)
-- Hash de contraseñas (p.ej., `werkzeug.security.generate_password_hash` y `check_password_hash`).
-- Cambiar el tipo de `Price` a `DECIMAL` en `Productos` (ahora es `VARCHAR`).
-- Mover `app.secret_key` y credenciales a variables de entorno.
-- Añadir validaciones y manejo de errores más robusto en la API.
-- Paginación/filtrado en endpoints de listas.
-
----
-
 ¡Listo! Si seguiste los pasos, deberías poder abrir `http://localhost:9000/home`, registrarte/iniciar sesión y, con el usuario admin, administrar el catálogo y generar reportes.
 
 ---
