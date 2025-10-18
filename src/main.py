@@ -637,6 +637,54 @@ def get_venta_by_id(id):
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
 
+# -------------------------------
+# 🧾 REPORTE DE VENTAS
+# -------------------------------
+@app.route("/reportes/ventas")
+def reporte_ventas():
+    conn, cursor = dbconection.iniciarConexion()
+    cursor.execute("""
+        SELECT v.IdVenta,
+               u.UserName,
+               v.FechaVenta,
+               v.Total,
+               v.MetodoPago,
+               v.Estado,
+               (SELECT COUNT(*) FROM Detalle_Venta dv WHERE dv.IdVenta = v.IdVenta) AS items_count
+        FROM Ventas v
+        LEFT JOIN Users u ON u.IdUser = v.IdUser
+        ORDER BY v.FechaVenta DESC;
+    """)
+    rows = cursor.fetchall()
+    conn.close()
+
+    # Formateo de filas para la tabla PDF
+    datos = []
+    for r in rows:
+        id_venta   = r[0]
+        user_name  = r[1] or ""
+        fecha      = r[2].strftime("%Y-%m-%d %H:%M:%S") if hasattr(r[2], "strftime") else str(r[2])
+        total      = float(r[3]) if r[3] is not None else 0.0
+        metodo     = r[4] or ""
+        estado     = r[5] or ""
+        items      = int(r[6]) if r[6] is not None else 0
+
+        # COP con separador de miles como punto (sin decimales para uniformar con otros reportes)
+        total_str = f"${total:,.0f}".replace(",", ".")
+
+        datos.append([id_venta, fecha, user_name, total_str, metodo, estado, items])
+
+    return crear_reporte_pdf(
+        "Reporte de Ventas",
+        ["ID Venta", "Fecha", "Usuario", "Total", "Método", "Estado", "Items"],
+        datos,
+        "reporte_ventas.pdf"
+    )
+
+
+##########################
+## VENTAS ###############
+##########################
 
 @app.route("/ventas", methods=["POST"])
 def add_venta():
@@ -722,6 +770,8 @@ def delete_venta(id):
         except:
             pass
         return jsonify({"success": False, "message": str(e)}), 500
+
+
 
 @app.route("/logout")
 def logout():

@@ -682,6 +682,11 @@ function initReportes() {
   document.getElementById("reporteCatalogos")?.addEventListener("click", () => {
     window.open("/reportes/catalogos", "_blank");
   });
+
+  document.getElementById("reporteVentas")?.addEventListener("click", () => {
+    window.open("/reportes/ventas", "_blank");
+  });
+
 }
 
 // =========== VENTAS ===========
