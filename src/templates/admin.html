@@ -198,17 +198,110 @@
     </div>
     </section>
 
-    <!-- ==================== REPORTES ==================== -->
-    <section id="Reportes" class="section hidden">
-    <div class="reporte-container">
-        <img src="{{ url_for('static', filename='img/maquillaje.png') }}" class="logo-reporte" alt="GirlStore">
-        <h2>Reportes - GirlStore | Maquillaje & Cosméticos</h2>
-        <div class="report-buttons">
-        <button id="reporteUsuarios">📋 Usuarios</button>
-        <button id="reporteProductos">💄 Productos</button>
-        <button id="reporteCatalogos">📚 Catálogos</button>
+    <!-- === VENTAS === -->
+    <section id="ventas" style="display: none;">
+    <h2>Gestión de Ventas</h2>
+
+    <div class="catalog-actions">
+        <button id="openVentaModal" class="cart-btn">+ Nueva Venta</button>
+    </div>
+
+    <div class="table-container">
+        <table class="catalog-table">
+        <thead>
+            <tr>
+            <th>ID Venta</th>
+            <th>Usuario</th>
+            <th>Fecha</th>
+            <th>Total</th>
+            <th>Método</th>
+            <th>Estado</th>
+            <th>Items</th>
+            <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="ventasBody"></tbody>
+        </table>
+    </div>
+
+    <div id="paginationVentas" class="pagination"></div>
+
+    <!-- Modal Venta Detalle -->
+    <div id="ventaModal" class="modal">
+        <div class="modal-content">
+        <span class="close-btn" id="closeVentaModal">&times;</span>
+        <h3 id="ventaModalTitle">Detalle de la Venta</h3>
+
+        <div id="ventaHeader" style="margin-bottom:12px;"></div>
+
+        <div class="table-container">
+            <table class="catalog-table">
+            <thead>
+                <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody id="ventaDetalleBody"></tbody>
+            </table>
+        </div>
+
+        <div style="text-align:right;margin-top:12px;">
+            <strong>Total: </strong><span id="ventaTotal"></span>
+        </div>
+
         </div>
     </div>
+    
+    <!-- Modal Crear/Editar Venta -->
+    <div id="ventaFormModal" class="modal">
+        <div class="modal-content">
+        <span class="close-btn" id="closeVentaFormModal">&times;</span>
+        <h3 id="ventaFormTitle">Crear Venta</h3>
+
+        <form id="ventaForm">
+            <input type="hidden" id="venta_id" />
+
+
+            <label for="venta_user">Usuario:</label>
+            <select id="venta_user" required></select>
+
+            <label for="venta_metodo">Método de Pago:</label>
+            <input type="text" id="venta_metodo" value="Tarjeta" disabled/>
+
+
+            <label for="venta_estado">Estado:</label>
+            <select id="venta_estado">
+                <option value="Completada">Completada</option>
+                <option value="Pendiente">Pendiente</option>
+                <option value="Cancelada">Cancelada</option>
+            </select>
+
+            <label for="venta_total">Total:</label>
+            <input type="number" id="venta_total" step="0.01" required />
+
+            <div class="modal-actions">
+            <button type="submit" class="cart-btn">Guardar</button>
+            <button type="button" id="cancelVentaForm" class="cancel-btn">Cancelar</button>
+            </div>
+        </form>
+        </div>
+    </div>
+    </section>
+
+    <!-- ==================== REPORTES ==================== -->
+    <section id="Reportes" class="section hidden" >
+        <div class="reporte-container">
+            <img src="{{ url_for('static', filename='img/maquillaje.png') }}" class="logo-reporte" alt="GirlStore">
+            <h2>Reportes - GirlStore | Maquillaje & Cosméticos</h2>
+            <div class="report-buttons">
+            <button id="reporteUsuarios">📋 Usuarios</button>
+            <button id="reporteProductos">💄 Productos</button>
+            <button id="reporteCatalogos">📚 Catálogos</button>
+            </div>
+        </div>
     </section>
 
 

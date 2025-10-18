@@ -549,6 +549,180 @@ def reporte_catalogos():
         "reporte_catalogos.pdf"
     )
 
+
+# -------------------------------
+# 🧾 ENDPOINTS DE VENTAS
+# -------------------------------
+@app.route("/ventas", methods=["GET"])
+def get_ventas():
+    try:
+        conn, cursor = dbconection.iniciarConexion()
+        # Obtener ventas con información del usuario y cantidad de items
+        cursor.execute("""
+            SELECT v.IdVenta, u.UserName, v.FechaVenta, v.Total, v.MetodoPago, v.Estado,
+                   (SELECT COUNT(*) FROM Detalle_Venta dv WHERE dv.IdVenta = v.IdVenta) as items_count
+            FROM Ventas v
+            LEFT JOIN Users u ON u.IdUser = v.IdUser
+            ORDER BY v.FechaVenta DESC;
+        """)
+        rows = cursor.fetchall()
+        conn.close()
+
+        ventas = []
+        for r in rows:
+            ventas.append({
+                "IdVenta": r[0],
+                "UserName": r[1],
+                "FechaVenta": r[2].strftime("%Y-%m-%d %H:%M:%S") if hasattr(r[2], 'strftime') else str(r[2]),
+                "Total": float(r[3]) if r[3] is not None else 0,
+                "MetodoPago": r[4],
+                "Estado": r[5],
+                "ItemsCount": int(r[6])
+            })
+
+        return jsonify(ventas)
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+
+@app.route("/ventas/<int:id>", methods=["GET"])
+def get_venta_by_id(id):
+    try:
+        conn, cursor = dbconection.iniciarConexion()
+        # Cabecera de la venta
+        cursor.execute("SELECT IdVenta, IdUser, FechaVenta, Total, MetodoPago, Estado FROM Ventas WHERE IdVenta = %s;", (id,))
+        venta = cursor.fetchone()
+        if not venta:
+            conn.close()
+            return jsonify({"success": False, "message": "Venta no encontrada"}), 404
+
+        # Obtener nombre del usuario
+        cursor.execute("SELECT UserName, Email FROM Users WHERE IdUser = %s;", (venta[1],))
+        user = cursor.fetchone()
+
+        # Detalle de la venta con nombre de producto
+        cursor.execute("""
+            SELECT dv.IdDetalle, p.Id_producto, p.Name_product, dv.Cantidad, dv.PrecioUnitario, dv.Subtotal
+            FROM Detalle_Venta dv
+            LEFT JOIN Productos p ON p.Id_producto = dv.Id_producto
+            WHERE dv.IdVenta = %s;
+        """, (id,))
+        detalles = cursor.fetchall()
+        conn.close()
+
+        detalle_list = []
+        for d in detalles:
+            detalle_list.append({
+                "IdDetalle": d[0],
+                "Id_producto": d[1],
+                "Name_product": d[2],
+                "Cantidad": int(d[3]),
+                "PrecioUnitario": float(d[4]),
+                "Subtotal": float(d[5])
+            })
+
+        result = {
+            "IdVenta": venta[0],
+            "IdUser": venta[1],
+            "UserName": user[0] if user else None,
+            "Email": user[1] if user else None,
+            "FechaVenta": venta[2].strftime("%Y-%m-%d %H:%M:%S") if hasattr(venta[2], 'strftime') else str(venta[2]),
+            "Total": float(venta[3]) if venta[3] is not None else 0,
+            "MetodoPago": venta[4],
+            "Estado": venta[5],
+            "Detalles": detalle_list
+        }
+
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+
+@app.route("/ventas", methods=["POST"])
+def add_venta():
+    data = request.json
+    IdUser = data.get("IdUser")
+    Total = data.get("Total")
+    MetodoPago = data.get("MetodoPago", "Tarjeta")
+    Estado = data.get("Estado", "Completada")
+    Detalles = data.get("Detalles", [])
+
+    if not IdUser or Total is None:
+        return jsonify({"success": False, "message": "Campos vacíos"}), 400
+
+    try:
+        conn, cursor = dbconection.iniciarConexion()
+        cursor.execute("INSERT INTO Ventas (IdUser, Total, MetodoPago, Estado) VALUES (%s, %s, %s, %s)", (IdUser, Total, MetodoPago, Estado))
+        conn.commit()
+        id_venta = cursor.lastrowid
+
+        for d in Detalles:
+            pid = d.get('Id_producto') or d.get('IdProducto') or d.get('id')
+            cantidad = d.get('Cantidad') or d.get('cantidad') or 1
+            precio = d.get('PrecioUnitario') or d.get('Precio') or d.get('price') or 0
+            cursor.execute("INSERT INTO Detalle_Venta (IdVenta, Id_producto, Cantidad, PrecioUnitario) VALUES (%s, %s, %s, %s)", (id_venta, pid, cantidad, precio))
+
+        conn.commit()
+        conn.close()
+        return jsonify({"success": True, "message": "Venta creada correctamente"})
+    except Exception as e:
+        try:
+            conn.rollback()
+            conn.close()
+        except:
+            pass
+        return jsonify({"success": False, "message": str(e)}), 500
+
+
+@app.route("/ventas/<int:id>", methods=["PUT"])
+def update_venta(id):
+    data = request.json
+    Total = data.get("Total")
+    MetodoPago = data.get("MetodoPago")
+    Estado = data.get("Estado")
+    Detalles = data.get("Detalles", None)
+
+    try:
+        conn, cursor = dbconection.iniciarConexion()
+        cursor.execute("UPDATE Ventas SET Total=%s, MetodoPago=%s, Estado=%s WHERE IdVenta=%s", (Total, MetodoPago, Estado, id))
+        # Si vienen detalles, reemplazarlos
+        if Detalles is not None:
+            cursor.execute("DELETE FROM Detalle_Venta WHERE IdVenta=%s", (id,))
+            for d in Detalles:
+                pid = d.get('Id_producto') or d.get('IdProducto') or d.get('id')
+                cantidad = d.get('Cantidad') or d.get('cantidad') or 1
+                precio = d.get('PrecioUnitario') or d.get('Precio') or d.get('price') or 0
+                cursor.execute("INSERT INTO Detalle_Venta (IdVenta, Id_producto, Cantidad, PrecioUnitario) VALUES (%s, %s, %s, %s)", (id, pid, cantidad, precio))
+
+        conn.commit()
+        conn.close()
+        return jsonify({"success": True, "message": "Venta actualizada correctamente"})
+    except Exception as e:
+        try:
+            conn.rollback()
+            conn.close()
+        except:
+            pass
+        return jsonify({"success": False, "message": str(e)}), 500
+
+
+@app.route("/ventas/<int:id>", methods=["DELETE"])
+def delete_venta(id):
+    try:
+        conn, cursor = dbconection.iniciarConexion()
+        cursor.execute("DELETE FROM Detalle_Venta WHERE IdVenta=%s", (id,))
+        cursor.execute("DELETE FROM Ventas WHERE IdVenta=%s", (id,))
+        conn.commit()
+        conn.close()
+        return jsonify({"success": True, "message": "Venta eliminada correctamente"})
+    except Exception as e:
+        try:
+            conn.rollback()
+            conn.close()
+        except:
+            pass
+        return jsonify({"success": False, "message": str(e)}), 500
+
 @app.route("/logout")
 def logout():
     session.clear()

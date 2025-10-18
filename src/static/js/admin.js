@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
     Productos: document.querySelector("#productos"),
     Usuarios: document.querySelector("#usuarios"),
     Ventas: document.querySelector("#ventas"),
-    Reportes: document.querySelector("#reportes"),
+    Reportes: document.querySelector("#Reportes"),
   };
 
   const navLinks = document.querySelectorAll("nav a[data-section]");
@@ -35,10 +35,11 @@ document.addEventListener("DOMContentLoaded", () => {
         showSection(sectionName);
 
         // Cargar dinámicamente si se requiere
-        if (sectionName === "Catalogos") loadCatalogos?.();
-        if (sectionName === "Productos") loadProductos?.();
-        if (sectionName === "Usuarios") loadUsuarios?.();
-        if (sectionName === "Reportes") initReportes?.();
+  if (sectionName === "Catalogos") loadCatalogos?.();
+  if (sectionName === "Productos") loadProductos?.();
+  if (sectionName === "Usuarios") loadUsuarios?.();
+  if (sectionName === "Ventas") loadVentas?.();
+  if (sectionName === "Reportes") initReportes?.();
       }
     });
   });
@@ -183,6 +184,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadCatalogos();
   loadUsuarios(); 
   loadProductos();
+  loadVentas();
 });
 
 // === VARIABLES ===
@@ -682,3 +684,239 @@ function initReportes() {
   });
 }
 
+// =========== VENTAS ===========
+let allVentas = [];
+let currentPageVenta = 1;
+const ventasPerPage = 8;
+
+async function loadVentas() {
+  try {
+    const res = await fetch('/ventas');
+    if (!res.ok) throw new Error('Error fetching ventas');
+    allVentas = await res.json();
+    renderVentas();
+  } catch (err) {
+    console.error('loadVentas error', err);
+  }
+}
+
+function renderVentas() {
+  const body = document.getElementById('ventasBody');
+  const pag = document.getElementById('paginationVentas');
+  if (!body || !pag) return;
+
+  const start = (currentPageVenta - 1) * ventasPerPage;
+  const end = start + ventasPerPage;
+  const pageItems = allVentas.slice(start, end);
+
+  body.innerHTML = '';
+  pageItems.forEach(v => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${v.IdVenta}</td>
+      <td>${v.UserName || ''}</td>
+      <td>${v.FechaVenta}</td>
+      <td>$${Number(v.Total).toLocaleString('es-CO')}</td>
+      <td>${v.MetodoPago || ''}</td>
+      <td>${v.Estado || ''}</td>
+      <td>${v.ItemsCount || 0}</td>
+      <td>
+        <button class="edit-venta" data-id="${v.IdVenta}" title="Editar">✏️</button>
+        <button class="delete-venta" data-id="${v.IdVenta}" title="Eliminar">🗑️</button>
+      </td>
+    `;
+    body.appendChild(tr);
+  });
+
+  // pagination
+  pag.innerHTML = '';
+  const totalPages = Math.ceil(allVentas.length / ventasPerPage);
+  if (totalPages <= 1) return;
+  for (let i = 1; i <= totalPages; i++) {
+    const btn = document.createElement('button');
+    btn.textContent = i;
+    if (i === currentPageVenta) btn.classList.add('active');
+    btn.addEventListener('click', () => { currentPageVenta = i; renderVentas(); });
+    pag.appendChild(btn);
+  }
+}
+
+// Modal venta detalle
+const ventaModal = document.getElementById('ventaModal');
+const closeVentaModal = document.getElementById('closeVentaModal');
+const ventaDetalleBody = document.getElementById('ventaDetalleBody');
+const ventaHeader = document.getElementById('ventaHeader');
+const ventaTotal = document.getElementById('ventaTotal');
+
+function openVenta() { ventaModal?.classList.add('active'); }
+function closeVenta() { ventaModal?.classList.remove('active'); if (ventaDetalleBody) ventaDetalleBody.innerHTML = ''; if (ventaHeader) ventaHeader.innerHTML = ''; if (ventaTotal) ventaTotal.textContent = ''; }
+closeVentaModal?.addEventListener('click', closeVenta);
+
+// Delegated click handler for ventas actions
+document.getElementById('ventasBody')?.addEventListener('click', async (e) => {
+  const target = e.target;
+  // Editar venta
+  if (target.classList.contains('edit-venta')) {
+    const id = target.dataset.id;
+    try {
+      const res = await fetch(`/ventas/${id}`);
+      if (!res.ok) throw new Error('Venta no encontrada');
+      const data = await res.json();
+
+      document.getElementById('venta_id').value = data.IdVenta;
+      await loadVentaUserOptions(data.IdUser);   // <- llena y selecciona
+      document.getElementById('venta_metodo').value = data.MetodoPago || 'Tarjeta';
+      document.getElementById('venta_estado').value = data.Estado || 'Completada';
+      document.getElementById('venta_total').value = data.Total || 0;
+
+      document.getElementById('ventaFormTitle').textContent = 'Editar Venta';
+      document.getElementById('ventaFormModal').classList.add('active');
+    } catch (err) {
+      console.error(err);
+      Swal.fire('Error', 'No se pudo cargar la venta para editar', 'error');
+    }
+    return;
+  }
+
+  // Eliminar venta
+  if (target.classList.contains('delete-venta')) {
+    const id = target.dataset.id;
+    Swal.fire({
+      title: '¿Eliminar venta?',
+      text: 'Esta acción eliminará la venta y su detalle',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#e62e7a',
+      cancelButtonColor: '#aaa',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+    }).then(async (resu) => {
+      if (resu.isConfirmed) {
+        try {
+          const r = await fetch(`/ventas/${id}`, { method: 'DELETE' });
+          const d = await r.json();
+          if (d.success) {
+            Swal.fire('Eliminado', d.message, 'success');
+            loadVentas();
+          } else {
+            Swal.fire('Error', d.message, 'error');
+          }
+        } catch (err) {
+          Swal.fire('Error', 'No se pudo eliminar la venta', 'error');
+        }
+      }
+    });
+    return;
+  }
+});
+
+// Doble click en fila -> Ver detalles
+document.getElementById('ventasBody')?.addEventListener('dblclick', async (e) => {
+  const tr = e.target.closest('tr');
+  if (!tr) return;
+  const id = tr.children[0].textContent.trim();
+  try {
+    const res = await fetch(`/ventas/${id}`);
+    if (!res.ok) throw new Error('Venta no encontrada');
+    const data = await res.json();
+    if (ventaHeader) ventaHeader.innerHTML = `<div><strong>ID:</strong> ${data.IdVenta} &nbsp; <strong>Usuario:</strong> ${data.UserName || ''} &nbsp; <strong>Fecha:</strong> ${data.FechaVenta}</div>`;
+    if (ventaDetalleBody) ventaDetalleBody.innerHTML = '';
+    (data.Detalles || []).forEach(d => {
+      const tr2 = document.createElement('tr');
+      tr2.innerHTML = `
+        <td>${d.Name_product || ''}</td>
+        <td>${d.Cantidad}</td>
+        <td>$${Number(d.PrecioUnitario).toLocaleString('es-CO')}</td>
+        <td>$${Number(d.Subtotal).toLocaleString('es-CO')}</td>
+      `;
+      ventaDetalleBody.appendChild(tr2);
+    });
+    if (ventaTotal) ventaTotal.textContent = `$${Number(data.Total).toLocaleString('es-CO')}`;
+    openVenta();
+  } catch (err) {
+    console.error(err);
+    Swal.fire('Error', 'No se pudo cargar la venta', 'error');
+  }
+});
+
+// === FORMULARIO CREAR / EDITAR VENTA ===
+const openVentaFormBtn = document.getElementById('openVentaModal');
+const ventaFormModal = document.getElementById('ventaFormModal');
+const closeVentaFormModal = document.getElementById('closeVentaFormModal');
+const cancelVentaForm = document.getElementById('cancelVentaForm');
+const ventaForm = document.getElementById('ventaForm');
+
+function openVentaForm() { ventaFormModal?.classList.add('active'); }
+function closeVentaForm() { ventaFormModal?.classList.remove('active'); ventaForm?.reset(); document.getElementById('venta_id').value = ''; document.getElementById('ventaFormTitle').textContent = 'Crear / Editar Venta'; }
+openVentaFormBtn?.addEventListener('click', async () => {
+  await loadVentaUserOptions();    // <- carga usuarios
+  document.getElementById('venta_metodo').value = 'Tarjeta';
+  document.getElementById('venta_estado').value = 'Completada';
+  document.getElementById('venta_id').value = '';
+  document.getElementById('ventaFormTitle').textContent = 'Crear Venta';
+  openVentaForm();
+});
+
+closeVentaFormModal?.addEventListener('click', closeVentaForm);
+cancelVentaForm?.addEventListener('click', closeVentaForm);
+
+ventaForm?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = document.getElementById('venta_id').value;
+  const payload = {
+    IdUser: Number(document.getElementById('venta_user').value),
+    MetodoPago: document.getElementById('venta_metodo').value || 'Tarjeta',
+    Estado: document.getElementById('venta_estado').value || 'Completada',
+    Total: Number(document.getElementById('venta_total').value),
+  };
+  try {
+    const url = id ? `/ventas/${id}` : '/ventas';
+    const method = id ? 'PUT' : 'POST';
+    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    const data = await res.json();
+    if (data.success) {
+      Swal.fire('Éxito', data.message, 'success');
+      closeVentaForm();
+      loadVentas();
+    } else {
+      Swal.fire('Error', data.message, 'error');
+    }
+  } catch (err) {
+    Swal.fire('Error', 'No se pudo guardar la venta', 'error');
+    console.error(err);
+  }
+});
+
+
+// === CARGAR OPTIONS DE USUARIOS PARA EL SELECT DE VENTA ===
+async function loadVentaUserOptions(selectedId = null) {
+  const sel = document.getElementById('venta_user');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Cargando...</option>';
+  try {
+    const res = await fetch('/usuarios');
+    if (!res.ok) throw new Error('No se pudieron cargar los usuarios');
+    const users = await res.json();
+
+    sel.innerHTML = '';
+    // Opcional: placeholder
+    const ph = document.createElement('option');
+    ph.value = '';
+    ph.textContent = 'Seleccione un usuario...';
+    sel.appendChild(ph);
+
+    users.forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = String(u.IdUser);        // value = IdUser
+      opt.textContent = u.UserName;        // label = nombre
+      if (selectedId != null && String(selectedId) === String(u.IdUser)) {
+        opt.selected = true;
+      }
+      sel.appendChild(opt);
+    });
+  } catch (e) {
+    console.error(e);
+    sel.innerHTML = '<option value="">Error cargando usuarios</option>';
+    Swal.fire('Error', 'No se pudieron cargar los usuarios', 'error');
+  }
+}
