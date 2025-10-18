@@ -43,20 +43,27 @@ class ConnectionDB:
             print(f"Error: {e}")
             return {"error": str(e)}
 
-    def get_users(self, *args):
+    def insert_users(self, username, phone, email, pswd, direction, admin, *args):
         try:
             conn, cursor = self.iniciarConexion()
-            fullUsers = None
             try:
-                fullUsers = self.doQuery(cursor=cursor, query=""" SELECT * FROM users; """)
-
+                query = """
+                    INSERT INTO Users (UserName, Phone, Email, Pswd, Direction, IsAdmin)
+                    VALUES (%s, %s, %s, %s, %s, %s);
+                """
+                cursor.execute(query, (username, phone, email, pswd, direction, admin))
+                conn.commit() 
+                return {"success": True, "message": "Usuario insertado correctamente"}
             except Exception as e:
-                print(e)
+                conn.rollback() 
+                print(f"Error al insertar usuario: {e}")
+                return {"success": False, "message": str(e)}
             finally:
+                cursor.close()
                 conn.close()
-                return fullUsers
         except Exception as e:
-            print(f"{self.__class__.__name__}: Problemas al consultar")
+            print(f"{self.__class__.__name__}: Problemas al conectar - {e}")
+            return {"success": False, "message": "Problemas de conexión"}
 
     def get_cat_products(self, *args):
         try:

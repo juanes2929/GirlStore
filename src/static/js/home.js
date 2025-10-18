@@ -24,9 +24,16 @@ window.addEventListener('DOMContentLoaded', function () {
             <div class="product-info">
               <h3>${nombre}</h3>
               <p class="price">COP $${parseInt(precio).toLocaleString()}</p>
-              <button class="add-btn" data-name="${nombre}" data-price="${precio}">Agregar</button>
+              <button class="add-btn" 
+                      data-id="${id}" 
+                      data-name="${nombre}" 
+                      data-price="${precio}" 
+                      data-img="${imagen}">
+                Agregar
+              </button>
             </div>
           `;
+
           contenedor.appendChild(card);
         });
       });
@@ -111,38 +118,94 @@ function updateCart() {
 }
 
 function activarBotonesCarrito() {
-  document.querySelectorAll(".add-btn").forEach((btn) => {
+  document.querySelectorAll(".add-btn").forEach(btn => {
     btn.addEventListener("click", () => {
+      const id = parseInt(btn.dataset.id);
       const name = btn.dataset.name;
       const price = parseInt(btn.dataset.price);
-      const img = btn.parentElement.parentElement.querySelector("img").src;
-      cart.push({ name, price, img });
+      const img = btn.dataset.img;
+
+      cart.push({ id, name, price, img });
       updateCart();
     });
   });
 }
 
-cartBtn.onclick = () => cartModal.classList.add("active");
-closeCart.onclick = () => cartModal.classList.remove("active");
-clearCart.onclick = () => { cart = []; updateCart(); };
 
-buyBtn.onclick = () => {
-  if (cart.length === 0) {
-    alert("Tu carrito está vacío.");
-    return;
-  }
-  alert("¡Gracias por tu compra!");
-  cart = [];
-  updateCart();
+
+cartBtn.onclick = () => cartModal.classList.add("active");
+closeCart.onclick = () => {
   cartModal.classList.remove("active");
+  cartBtn.focus(); // mueve el foco al botón del carrito
 };
 
-cartItemsElem.addEventListener("click", (e) => {
-  if (e.target.dataset.i) {
-    cart.splice(e.target.dataset.i, 1);
-    updateCart();
+clearCart.onclick = () => { cart = []; updateCart(); };
+
+/* COMPRAR EN PAGINA */
+buyBtn.onclick = async () => {
+  if (cart.length === 0) {
+    Swal.fire({
+      title: "Carrito vacío",
+      text: "Agrega productos antes de comprar.",
+      icon: "warning",
+      confirmButtonColor: "#e62e7a",
+    });
+    return;
   }
-});
+
+  const total = cart.reduce((acc, item) => acc + item.price, 0);
+
+  try {
+    const resCompra = await fetch("/comprar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        carrito: cart.map(item => ({
+          id: item.id || null,
+          name: item.name,
+          price: item.price,
+          cantidad: 1,
+        })),
+        total,
+      }),
+    });
+
+    const dataCompra = await resCompra.json();
+
+    if (dataCompra.success) {
+      // Cerrar el modal de carrito inmediatamente
+      cartModal.classList.remove("active");
+
+      // Mostrar alerta de éxito
+      Swal.fire({
+        title: "¡Compra exitosa!",
+        text: "Tu pedido ha sido registrado con método de pago Tarjeta.",
+        icon: "success",
+        confirmButtonColor: "#e62e7a",
+      });
+
+      // Vaciar carrito y actualizar contador
+      cart = [];
+      updateCart();
+    } else {
+      Swal.fire({
+        title: "Error",
+        text: dataCompra.message || "No se pudo registrar la compra.",
+        icon: "error",
+        confirmButtonColor: "#e62e7a",
+      });
+    }
+  } catch (err) {
+    console.error(err);
+    Swal.fire({
+      title: "Error",
+      text: "Ocurrió un error al procesar la compra.",
+      icon: "error",
+      confirmButtonColor: "#e62e7a",
+    });
+  }
+};
 
 // ==============================
 // CARRUSEL CON FLECHAS + ANIMACIÓN
@@ -223,3 +286,4 @@ function initCarruseles() {
     startAuto();
   });
 }
+

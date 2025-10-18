@@ -31,10 +31,10 @@
         <h2>Crear Cuenta</h2>
         <p class="subtitle">Únete a <strong>GirlStore</strong> y descubre lo mejor en cosméticos</p>
 
-        <form action="{{ url_for('registro') }}" method="POST" class="register-form">
+        <form action="{{ url_for('registro') }}" method="POST" method="POST" class="register-form">
           <div class="form-group">
             <label for="usuario">Usuario</label>
-            <input type="text" id="usuario" name="usuario" placeholder="Tu nombre de usuario" required>
+            <input type="text" id="usuario" name="usuario" placeholder="Tu nombre de usuario" required autofocus>
           </div>
 
           <div class="form-group">
@@ -71,8 +71,74 @@
     </div>
   </section>
 
+  <section id="productos" style="display:none;">
+    <h2>Gestión de Productos</h2>
+
+    <div class="catalog-actions">
+      <button id="openProductModal" class="cart-btn">+ Agregar Producto</button>
+    </div>
+
+    <div class="table-container">
+      <table class="catalog-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Imagen</th>
+            <th>Precio</th>
+            <th>Catálogo</th>
+            <th>Activo</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="productBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Modal de Productos -->
+    <div id="productModal" class="modal">
+      <div class="modal-content">
+        <span class="close-btn" id="closeProductModal">&times;</span>
+        <h3 id="productModalTitle">Agregar Producto</h3>
+
+        <form id="productForm">
+          <input type="hidden" id="productId" />
+
+          <label for="name_product">Nombre del producto:</label>
+          <input type="text" id="name_product" required />
+
+          <label for="img_product">URL de la imagen:</label>
+          <input type="text" id="img_product" required />
+
+          <label for="price_product">Precio:</label>
+          <input type="text" id="price_product" required />
+
+          <label for="catalogSelect">Catálogo asociado:</label>
+          <select id="catalogSelect" required>
+            <option value="">Selecciona un catálogo</option>
+          </select>
+
+          <label for="isActive">¿Activo?</label>
+          <select id="isActive" required>
+            <option value="true">Sí</option>
+            <option value="false">No</option>
+          </select>
+
+          <div class="modal-actions">
+            <button type="submit" class="cart-btn">Guardar</button>
+            <button type="button" id="cancelProductModal" class="cancel-btn">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
   <footer>
     © 2025 GirlStore. Todos los derechos reservados.
   </footer>
+
+  <script src="{{ url_for('static', filename='js/resgistro.js') }}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 </body>
 </html>
