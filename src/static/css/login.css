@@ -1,3 +1,4 @@
+/* Variables de color y radios para el tema */
 :root {
   --primary: #e62e7a;
   --secondary: #f8cdd5;
@@ -6,6 +7,7 @@
   --radius: 16px;
 }
 
+/* Reset y tipografía base */
 * {
   margin: 0;
   padding: 0;
@@ -13,6 +15,7 @@
   font-family: "Nunito", sans-serif;
 }
 
+/* Fondo general y color de texto */
 body {
   background: var(--bg-light);
   color: var(--text-dark);
@@ -20,6 +23,7 @@ body {
 }
 
 
+/* Header fijo y transición de fondo */
 header {
   position: fixed;
   top: 0;
@@ -127,6 +131,7 @@ footer {
 }
 
 /* ===== LOGIN SECTION ===== */
+/* Contenedor centrado del login */
 .login-wrapper {
   min-height: 100vh;
   display: flex;
@@ -136,6 +141,7 @@ footer {
   padding: 40px 20px;
 }
 
+/* Tarjeta de login con blur y sombra */
 .login-card {
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(15px);

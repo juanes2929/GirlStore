@@ -322,6 +322,18 @@ Puedes abrirlos en una pestaña o descargar desde el navegador.
 - `templates/admin.html`: panel con pestañas (Catálogos, Productos, Usuarios, Ventas y Reportes). Usa tablas, paginación, ordenamiento y modales.
 - `static/js/*.js`: maneja el consumo de la API (fetch), abre/cierra modales, arma tablas, controla el carrito, envía formularios y descarga reportes.
 
+#### Explicación HTML (plantillas)
+- `home.html`:
+  - Header fijo: navegación por secciones y botón del carrito.
+  - Secciones `#trendy`, `#montoc`, `#milagros`: contenedores `.products` donde el JS inyecta tarjetas.
+  - Modal del carrito: lista los productos agregados y permite comprar, vaciar o cerrar.
+- `login.html`:
+  - Formulario con `id="loginForm"` que al enviar llama a `/login` (POST). El JS intercepta y muestra alertas.
+- `registro.html`:
+  - Formulario con clase `.register-form` que envía los campos como `FormData` a `/registro` (POST).
+- `admin.html`:
+  - Secciones ocultables para CRUD de Catálogos, Productos, Usuarios y Ventas; y una sección de Reportes con botones que abren PDFs.
+
 ### 5) Ciclo petición-respuesta (ejemplo)
 Compra desde `home.html`:
 1) El usuario agrega productos al carrito (JS guarda/actualiza el carrito y muestra total).
@@ -346,6 +358,55 @@ Lo que falta para producción:
 - Nueva vista: agrega HTML en `templates/` y el JS en `static/js/` que consuma tu endpoint.
 
 ### 8) Conceptos clave para explicar en la sustentación
+- HTML: estructura semántica, plantillas Jinja para mostrar/ocultar según `session`.
+- CSS: variables de tema (`:root`), layout responsivo, modales y animaciones (transiciones y keyframes).
+- JavaScript: `fetch` para consumir API; manejo del DOM para tablas, modales y carrito; paginación, orden y toasts con SweetAlert2.
+- Python (Flask): rutas con `@app.route`, manejo de `request`/`session`, `jsonify` para respuestas JSON, `render_template` para vistas, conexión a MySQL.
+
+---
+
+## Explicación rápida por archivos (HTML, CSS, JS, Python)
+
+### HTML (vistas)
+- `templates/home.html`: Estructura de la página principal, con contenedores que el JS llena con productos y un modal de carrito.
+- `templates/login.html`: Formulario de acceso; al enviar, el JS hace POST a `/login` y redirige si es correcto.
+- `templates/registro.html`: Formulario de registro que envía `FormData` a `/registro` y muestra feedback con SweetAlert2.
+- `templates/admin.html`: Panel SPA sencillo que alterna secciones y abre modales para CRUDs.
+
+### CSS (estilos)
+- `static/css/home.css`: Estilos del Home (header fijo, hero con imagen, tarjetas de producto, carrito modal y carrusel).
+- `static/css/login.css`: Tarjeta de login con blur, sombras y animaciones de entrada.
+- `static/css/registro.css`: Estilos similares al login, adaptados al formulario de registro.
+- `static/css/admin.css`: Tabla, modales, paginación y botones del panel de administración.
+
+### JavaScript (comportamiento)
+- `static/js/home.js`:
+  - Pide `/ProdCat` y llena las secciones de productos.
+  - Carrito en memoria: agrega, calcula total y hace POST a `/comprar`.
+  - Efectos: header al hacer scroll, animaciones y carrusel simple.
+- `static/js/login.js`:
+  - Intercepta `#loginForm`, envía POST a `/login` y redirige al Home si autentica.
+- `static/js/resgistro.js`:
+  - Intercepta `.register-form`, envía `FormData` a `/registro` y redirige a `/login` tras éxito.
+- `static/js/admin.js`:
+  - Navega entre secciones del panel.
+  - CRUD de catálogos (`/catalogo`), productos (`/productos`), usuarios (`/usuarios`) y ventas (`/ventas`).
+  - Modales para crear/editar, paginación y ordenamiento.
+  - Descarga de reportes PDF abriendo endpoints `/reportes/*`.
+
+### Python (servidor Flask)
+- `src/main.py`:
+  - Rutas HTML: `/home`, `/login`, `/registro`, `/admin`.
+  - API CRUD: `/catalogo`, `/productos`, `/usuarios`, `/ventas`.
+  - Compra del carrito: `POST /comprar` (requiere sesión activa).
+  - Reportes PDF: `/reportes/usuarios|productos|catalogos|ventas`.
+  - Utilidad `crear_reporte_pdf(...)` con `reportlab`.
+- `src/service/connection.py`:
+  - `iniciarConexion()`: abre conexión con MySQL y retorna `(conn, cursor)`.
+  - `doQuery(...)`: ejecuta SELECT y retorna filas.
+  - `insert_users(...)`: inserta un usuario (con commit/rollback).
+  - `get_cat_products()`: LEFT JOIN de catálogos con productos.
+
 - Ruteo en Flask: `@app.route` y métodos HTTP.
 - Objetos `request`, `session`, `jsonify` y `render_template`.
 - Conexión a MySQL con `mysql-connector-python` (transacciones, `commit`/`rollback`).

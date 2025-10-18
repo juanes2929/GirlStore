@@ -6,26 +6,29 @@ from reportlab.lib import colors
 import os
 from datetime import datetime
 
-from service.connection import ConnectionDB
+from service.connection import ConnectionDB  # Capa de acceso a datos (MySQL)
 import flask_cors
 from flask import Flask, request, redirect, render_template, url_for, session, flash, jsonify, send_file, make_response
 
 app = Flask(__name__)
-app.secret_key = "GirlStore"
-flask_cors.CORS(app)
+app.secret_key = "GirlStore"  # Clave para firmar cookies de sesión
+flask_cors.CORS(app)  # Permite peticiones desde el frontend (si fuese otro dominio)
 
-dbconection = ConnectionDB() 
+dbconection = ConnectionDB()  # Instancia para interactuar con la BD
 
 @app.errorhandler(404)
-def PaginaNoEncontrada(error): 
+def PaginaNoEncontrada(error):
+    """Si una ruta no existe, redirige a Home para mejorar UX."""
     return redirect("/home")
 
 @app.route("/")
 def tologin():
+    """Redirige al Home por defecto."""
     return redirect("/home")
 
 @app.route("/registro", methods=['POST', 'GET'])
 def registro():
+    """Muestra el formulario de registro (GET) y crea usuario (POST)."""
     if request.method == "GET":
         return render_template("registro.html")
 
@@ -36,13 +39,15 @@ def registro():
     direction = request.form.get("direccion")
     isAdmin = request.form.get("user_type", "0")  
 
+    # Validación simple de campos vacíos (lado servidor)
     if not all([user, phone, email, passwd, direction]):
         return jsonify({"success": False, "message": "Campos vacíos"})
 
     try:
         valIsAdmin = bool(int(isAdmin))
     except ValueError:
-        valIsAdmin = False  
+        # Si el valor de admin no es convertible a entero, lo tomamos como False
+        valIsAdmin = False
 
     res = dbconection.insert_users(
         username=user,
@@ -62,6 +67,7 @@ def registro():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    """Muestra login (GET) y autentica contra la tabla Users (POST)."""
     if request.method == "GET":
         return render_template("login.html")
 
@@ -71,6 +77,7 @@ def login():
     if not user or not passw:
         return jsonify({"success": False, "message": "Campos vacíos"})
 
+    # NOTA: Para producción, hacer SELECT con WHERE Email = %s LIMIT 1
     conn, cursor = dbconection.iniciarConexion()
     cursor.execute("SELECT * FROM Users;")
     resU = cursor.fetchall()
@@ -87,12 +94,14 @@ def login():
 
 @app.route("/admin")
 def admin():
+    """Página del panel de administración (solo Rol == 1)."""
     if not session.get('Rol') == 1:
-        return redirect(url_for('home'))  
+        return redirect(url_for('home'))
     return render_template("admin.html")
 
 @app.route("/check_session")
 def check_session():
+    """Endpoint ligero para que el frontend detecte si hay sesión activa."""
     if 'Name' in session:
         return jsonify({"logged_in": True})
     else:
@@ -100,16 +109,19 @@ def check_session():
 
 @app.route("/home")
 def home():
+    """Renderiza la página principal (Home)."""
     return render_template("home.html")
 
 @app.route("/ProdCat", methods=["GET"])
 def ProdCat():
+    """Devuelve catálogos + productos (JOIN) para poblar secciones del Home."""
     res = dbconection.get_cat_products()
     return jsonify(res)
 
 
 @app.route("/catalogo", methods=["GET"])
 def get_catalogos():
+    """Lista todos los catálogos."""
     conn, cursor = dbconection.iniciarConexion()
     data = dbconection.doQuery(cursor, "SELECT * FROM Catalogo;")
     conn.close()
@@ -118,6 +130,7 @@ def get_catalogos():
 
 @app.route("/catalogo", methods=["POST"])
 def add_catalogo():
+    """Crea un catálogo nuevo (Id_catalogo, Name_catalogo)."""
     data = request.json
     Id_catalogo = data.get("Id_catalogo")
     Name_catalogo = data.get("Name_catalogo")
@@ -133,6 +146,7 @@ def add_catalogo():
 
 @app.route("/catalogo/<int:id>", methods=["PUT"])
 def update_catalogo(id):
+    """Actualiza un catálogo por su Id_cat interno."""
     data = request.json
     Id_catalogo = data.get("Id_catalogo")
     Name_catalogo = data.get("Name_catalogo")
@@ -150,6 +164,7 @@ def update_catalogo(id):
 
 @app.route("/catalogo/<int:id>", methods=["DELETE"])
 def delete_catalogo(id):
+    """Elimina un catálogo por Id_cat."""
     try:
         conn, cursor = dbconection.iniciarConexion()
         cursor.execute("DELETE FROM Catalogo WHERE Id_cat=%s", (id,))
@@ -162,6 +177,7 @@ def delete_catalogo(id):
 
 @app.route("/productos", methods=["GET"])
 def get_productos():
+    """Lista productos enriquecidos con datos de catálogo."""
     try:
         res = dbconection.get_cat_products()
         productos = []
@@ -185,6 +201,7 @@ def get_productos():
 
 @app.route("/productos/<int:id>", methods=["GET"])
 def get_producto_by_id(id):
+    """Devuelve un producto por Id_producto."""
     try:
         conn, cursor = dbconection.iniciarConexion()
         cursor.execute("""
@@ -211,6 +228,7 @@ def get_producto_by_id(id):
 
 @app.route("/productos", methods=["POST"])
 def add_producto():
+    """Crea un producto nuevo."""
     data = request.json
     Name_product = data.get("Name_product")
     Img = data.get("Img")
@@ -236,6 +254,7 @@ def add_producto():
 
 @app.route("/productos/<int:id>", methods=["PUT"])
 def update_producto(id):
+    """Actualiza un producto existente."""
     data = request.json
     Name_product = data.get("Name_product")
     Img = data.get("Img")
@@ -259,6 +278,7 @@ def update_producto(id):
 
 @app.route("/productos/<int:id>", methods=["DELETE"])
 def delete_producto(id):
+    """Desactiva un producto (soft-delete)."""
     try:
         conn, cursor = dbconection.iniciarConexion()
         cursor.execute("UPDATE Productos SET IsActive = FALSE WHERE Id_producto = %s;", (id,))
@@ -270,6 +290,7 @@ def delete_producto(id):
 
 @app.route("/usuarios", methods=["GET"])
 def get_usuarios():
+    """Lista usuarios (sin contraseñas)."""
     try:
         conn, cursor = dbconection.iniciarConexion()
         cursor.execute("SELECT * FROM Users;")
@@ -295,6 +316,7 @@ def get_usuarios():
 
 @app.route("/usuarios/<int:id>", methods=["GET"])
 def get_usuario_by_id(id):
+    """Detalle de usuario por IdUser."""
     try:
         conn, cursor = dbconection.iniciarConexion()
         cursor.execute("SELECT IdUser, UserName, Phone, Email, Direction, IsAdmin FROM Users WHERE IdUser=%s;", (id,))
@@ -318,6 +340,7 @@ def get_usuario_by_id(id):
 
 @app.route("/usuarios", methods=["POST"])
 def add_usuario():
+    """Crea un usuario (incluye contraseña en texto plano: solo educativa)."""
     data = request.json
     UserName = data.get("UserName")
     Phone = data.get("Phone")
@@ -344,6 +367,7 @@ def add_usuario():
 
 @app.route("/usuarios/<int:id>", methods=["PUT"])
 def update_usuario(id):
+    """Actualiza datos de un usuario (sin cambiar contraseña)."""
     data = request.json
     UserName = data.get("UserName")
     Phone = data.get("Phone")
@@ -366,6 +390,7 @@ def update_usuario(id):
 
 @app.route("/usuarios/<int:id>", methods=["DELETE"])
 def delete_usuario(id):
+    """Elimina un usuario de la base de datos."""
     try:
         conn, cursor = dbconection.iniciarConexion()
         cursor.execute("DELETE FROM Users WHERE IdUser=%s;", (id,))
@@ -377,6 +402,12 @@ def delete_usuario(id):
 
 
 def crear_reporte_pdf(titulo_reporte, encabezados, filas, nombre_archivo):
+    """Construye y retorna un PDF con tabla estilizada usando reportlab.
+
+    - Encabezado con logo y título
+    - Tabla central con encabezados y filas
+    - Pie con fecha/hora
+    """
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=40, bottomMargin=30)
     styles = getSampleStyleSheet()
@@ -425,6 +456,7 @@ def crear_reporte_pdf(titulo_reporte, encabezados, filas, nombre_archivo):
 
 @app.route("/comprar", methods=["POST"])
 def comprar():
+    """Flujo de compra desde el Home: registra venta y detalle para el usuario en sesión."""
     if 'Name' not in session:
         return jsonify({"success": False, "message": "Usuario no autenticado"}), 401
 
@@ -435,7 +467,7 @@ def comprar():
     if not carrito or total <= 0:
         return jsonify({"success": False, "message": "Carrito vacío o inválido"}), 400
 
-    # Buscar el usuario en la BD
+    # Buscar el usuario en la BD (por nombre guardado en sesión)
     conn, cursor = dbconection.iniciarConexion()
     cursor.execute("SELECT IdUser FROM Users WHERE UserName = %s", (session["Name"],))
     user = cursor.fetchone()
@@ -446,7 +478,7 @@ def comprar():
     id_user = user[0]
 
     try:
-        # Registrar venta
+        # Registrar venta (cabecera)
         cursor.execute("""
             INSERT INTO Ventas (IdUser, Total, MetodoPago)
             VALUES (%s, %s, %s)
@@ -455,7 +487,7 @@ def comprar():
 
         id_venta = cursor.lastrowid
 
-        # Registrar detalle de venta
+        # Registrar detalle de venta (una línea por producto)
         for item in carrito:
             cursor.execute("""
                 INSERT INTO Detalle_Venta (IdVenta, Id_producto, Cantidad, PrecioUnitario)
@@ -476,6 +508,7 @@ def comprar():
 # -------------------------------
 @app.route("/reportes/usuarios")
 def reporte_usuarios():
+    """Genera PDF con usuarios y su rol."""
     conn, cursor = dbconection.iniciarConexion()
     cursor.execute("SELECT IdUser, UserName, Phone, Email, Direction, IsAdmin FROM Users;")
     rows = cursor.fetchall()
@@ -506,6 +539,7 @@ def reporte_usuarios():
 # -------------------------------
 @app.route("/reportes/productos")
 def reporte_productos():
+    """Genera PDF con productos, precio y estado."""
     conn, cursor = dbconection.iniciarConexion()
     cursor.execute("SELECT Id_producto, Name_product, Price, Id_cat, IsActive FROM Productos;")
     rows = cursor.fetchall()
@@ -535,6 +569,7 @@ def reporte_productos():
 # -------------------------------
 @app.route("/reportes/catalogos")
 def reporte_catalogos():
+    """Genera PDF con catálogos (ID, código y nombre)."""
     conn, cursor = dbconection.iniciarConexion()
     cursor.execute("SELECT Id_cat, Id_catalogo, Name_catalogo FROM Catalogo;")
     rows = cursor.fetchall()
@@ -555,6 +590,7 @@ def reporte_catalogos():
 # -------------------------------
 @app.route("/ventas", methods=["GET"])
 def get_ventas():
+    """Lista todas las ventas con conteo de ítems."""
     try:
         conn, cursor = dbconection.iniciarConexion()
         # Obtener ventas con información del usuario y cantidad de items
@@ -587,6 +623,7 @@ def get_ventas():
 
 @app.route("/ventas/<int:id>", methods=["GET"])
 def get_venta_by_id(id):
+    """Detalle completo de una venta (cabecera + líneas)."""
     try:
         conn, cursor = dbconection.iniciarConexion()
         # Cabecera de la venta
@@ -642,6 +679,7 @@ def get_venta_by_id(id):
 # -------------------------------
 @app.route("/reportes/ventas")
 def reporte_ventas():
+    """Genera PDF con ventas (ID, fecha, usuario, total, método, estado, items)."""
     conn, cursor = dbconection.iniciarConexion()
     cursor.execute("""
         SELECT v.IdVenta,
@@ -688,6 +726,7 @@ def reporte_ventas():
 
 @app.route("/ventas", methods=["POST"])
 def add_venta():
+    """Crea una venta (uso desde Admin)."""
     data = request.json
     IdUser = data.get("IdUser")
     Total = data.get("Total")
@@ -724,6 +763,7 @@ def add_venta():
 
 @app.route("/ventas/<int:id>", methods=["PUT"])
 def update_venta(id):
+    """Actualiza una venta; si vienen Detalles, reemplaza las líneas."""
     data = request.json
     Total = data.get("Total")
     MetodoPago = data.get("MetodoPago")
@@ -756,6 +796,7 @@ def update_venta(id):
 
 @app.route("/ventas/<int:id>", methods=["DELETE"])
 def delete_venta(id):
+    """Elimina una venta y su detalle asociado."""
     try:
         conn, cursor = dbconection.iniciarConexion()
         cursor.execute("DELETE FROM Detalle_Venta WHERE IdVenta=%s", (id,))
@@ -775,6 +816,7 @@ def delete_venta(id):
 
 @app.route("/logout")
 def logout():
+    """Cierra sesión y redirige al inicio."""
     session.clear()
     return redirect("/")
 

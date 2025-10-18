@@ -1,3 +1,4 @@
+// JS del login: captura el submit, envía POST a /login
 document.getElementById('loginForm').addEventListener('submit', (e) => {
     e.preventDefault();
     fetch('/login', {

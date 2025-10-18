@@ -10,7 +10,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
-  <!-- HEADER -->
+  <!-- HEADER: barra fija con logo, navegación por secciones y botón de carrito.
+       Si hay sesión, muestra "Cerrar Sesión" y, si el rol es admin (1), el enlace "Administrar". -->
   <header id="header">
     <div class="logo">GirlStore</div>
     <nav>
@@ -27,14 +28,12 @@
         <a href="{{ url_for('login') }}">Iniciar Sesión</a>
       {% endif %}
     </nav>
-  <!-- <button class="add-btn" data-id="${id}" data-name="${nombre}" data-price="${precio}" data-img="${imagen}">
-    Agregar
-  </button> -->
+
 
     <button class="cart-btn" id="cart-btn"><i class="fa-solid fa-cart-shopping"></i> <span id="cart-count">0</span> Carrito</button>
   </header>
 
-  <!-- HERO -->
+  <!-- HERO: bloque de presentación; si hay sesión, saluda por nombre. -->
   <section class="hero" id="hero">
     <div class="hero-content">
       <h1>Descubre tu Belleza</h1>
@@ -47,25 +46,25 @@
     </div>
   </section>
 
-  <!-- TRENDY -->
+  <!-- TRENDY: el JS inyecta aquí tarjetas de productos del catálogo Trendy. -->
   <section id="trendy" data-animate>
     <h2>Trendy</h2>
     <div class="products"></div>
   </section>
 
-  <!-- MONTOC -->
+  <!-- MONTOC: el JS inyecta aquí tarjetas de productos del catálogo Montoc. -->
   <section id="montoc" data-animate>
     <h2>Montoc</h2>
     <div class="products"></div>
   </section>
 
-  <!-- MILAGROS -->
+  <!-- MILAGROS: el JS inyecta aquí tarjetas de productos del catálogo Milagros. -->
   <section id="milagros" data-animate>
     <h2>Milagros</h2>
     <div class="products"></div>
   </section>
 
-  <!-- CARRITO -->
+  <!-- CARRITO: modal con elementos agregados, total y acciones de compra. -->
   <div id="cart-modal">
     <div class="cart-content">
       <h2>Tu Carrito</h2>

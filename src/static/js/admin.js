@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // JS del panel de administración: manejo de secciones, CRUDs y reportes
   // === REFERENCIAS A SECCIONES ===
   const sections = {
     Catalogos: document.querySelector("#admin"), // sección de catálogos
@@ -11,6 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const navLinks = document.querySelectorAll("nav a[data-section]");
 
   // === CAMBIO DE SECCIONES ===
+  // Muestra solo la sección seleccionada y oculta las demás
   function showSection(sectionName) {
     Object.keys(sections).forEach((key) => {
       if (sections[key]) {
@@ -27,6 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // === ASIGNAR EVENTOS A LOS LINKS DEL NAV ===
+  // Navegación SPA sencilla (sin recargar la página)
   navLinks.forEach((link) => {
     link.addEventListener("click", (e) => {
       const sectionName = e.target.dataset.section;
@@ -48,6 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
   showSection("Catalogos");
 
   // === FUNCIONES EXISTENTES ===
+  // CRUD de Catálogos (modal + tabla)
   const modal = document.getElementById("catalogModal");
   const openModalBtn = document.getElementById("openModalBtn");
   const closeModal = document.getElementById("closeModal");
@@ -75,6 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // === CARGAR CATÁLOGOS ===
+  // Trae /catalogo y llena la tabla
   async function loadCatalogos() {
     const res = await fetch("/catalogo");
     const data = await res.json();
@@ -97,6 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // === GUARDAR / EDITAR CATÁLOGO ===
+  // Envía POST o PUT según estado de edición
   if (catalogForm) {
     catalogForm.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -141,6 +147,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // === EDITAR / ELIMINAR CATÁLOGO ===
+  // Delegación de eventos en la tabla para editar o borrar
   if (catalogBody) {
     catalogBody.addEventListener("click", async (e) => {
       if (e.target.classList.contains("edit")) {
@@ -188,6 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // === VARIABLES ===
+// Estado de productos y orden/paginación
 let allProductos = [];
 let currentPage = 1;
 const itemsPerPage = 10;
@@ -195,6 +203,7 @@ let sortField = null;
 let sortOrder = "asc";
 
 // === CARGAR PRODUCTOS ===
+// Pide /productos y guarda en memoria
 async function loadProductos() {
   const res = await fetch("/productos");
   allProductos = await res.json();
@@ -202,6 +211,7 @@ async function loadProductos() {
 }
 
 // === RENDERIZAR PRODUCTOS CON PAGINACIÓN Y ORDEN ===
+// Ordena, pagina y renderiza la tabla
 function renderProductos() {
   const productoBody = document.getElementById("productoBody");
   if (!productoBody) return;
@@ -280,6 +290,7 @@ function renderPagination(totalItems) {
 }
 
 // === MODAL PRODUCTO ===
+// Abre/cierra y resetea el formulario del modal
 const productoModal = document.getElementById("productoModal");
 const openProductoModal = document.getElementById("openProductoModal");
 const closeProductoModal = document.getElementById("closeProductoModal");
@@ -310,6 +321,7 @@ if (openProductoModal && closeProductoModal && cancelProductoModal) {
 }
 
 // === FORMATEO DE PRECIO (COP) ===
+// Permite escribir números con puntos de miles
 priceInput.addEventListener("input", (e) => {
   let value = e.target.value.replace(/\D/g, "");
   if (!value) {
@@ -320,6 +332,7 @@ priceInput.addEventListener("input", (e) => {
 });
 
 // === CARGAR CATÁLOGOS EN SELECT ===
+// Llena el select con catálogos al crear/editar
 async function loadCatalogOptions(selectedId = null) {
   const res = await fetch("/catalogo");
   const catalogs = await res.json();
@@ -336,6 +349,7 @@ async function loadCatalogOptions(selectedId = null) {
 }
 
 // === GUARDAR PRODUCTO ===
+// Envía POST o PUT a /productos
 productoForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -383,6 +397,7 @@ productoForm.addEventListener("submit", async (e) => {
 });
 
 // === EDITAR / ELIMINAR PRODUCTO ===
+// Acciones sobre cada fila
 document.getElementById("productoBody").addEventListener("click", async (e) => {
   if (e.target.classList.contains("edit-prod")) {
     editProductoMode = true;
@@ -451,6 +466,7 @@ function toggleSort(field) {
 }
 
 // ==== USUARIOS ====
+// Estado de usuarios, orden y paginación
 let allUsuarios = [];
 let currentPageUser = 1;
 const usersPerPage = 10;
@@ -541,6 +557,7 @@ function renderPaginationUsuarios(total) {
 }
 
 // === Modal ===
+// Alta/edición de usuarios (sin cambiar contraseña en edición)
 const usuarioModal = document.getElementById("usuarioModal");
 const openUsuarioModal = document.getElementById("openUsuarioModal");
 const closeUsuarioModal = document.getElementById("closeUsuarioModal");
@@ -565,6 +582,7 @@ closeUsuarioModal?.addEventListener("click", closeUser);
 cancelUsuarioModal?.addEventListener("click", closeUser);
 
 // === Guardar usuario ===
+// POST/PUT /usuarios
 usuarioForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -607,6 +625,7 @@ usuarioForm.addEventListener("submit", async (e) => {
 });
 
 // === Editar / Eliminar usuario ===
+// Delegación de eventos sobre la tabla
 document.getElementById("usuarioBody")?.addEventListener("click", async (e) => {
   if (e.target.classList.contains("edit-user")) {
     editUserMode = true;
@@ -667,6 +686,7 @@ function toggleUserSort(field) {
 
 
 // ============ SECCIÓN REPORTES ============
+// Abre los endpoints de PDF en pestañas nuevas
 
 function initReportes() {
   console.log("Sección Reportes activa");
@@ -690,6 +710,7 @@ function initReportes() {
 }
 
 // =========== VENTAS ===========
+// Listado con paginación, edición, eliminación y detalle (modal)
 let allVentas = [];
 let currentPageVenta = 1;
 const ventasPerPage = 8;
@@ -845,6 +866,7 @@ document.getElementById('ventasBody')?.addEventListener('dblclick', async (e) =>
 });
 
 // === FORMULARIO CREAR / EDITAR VENTA ===
+// Modal para cabecera de venta (sin líneas detalladas manuales)
 const openVentaFormBtn = document.getElementById('openVentaModal');
 const ventaFormModal = document.getElementById('ventaFormModal');
 const closeVentaFormModal = document.getElementById('closeVentaFormModal');

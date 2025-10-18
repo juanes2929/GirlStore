@@ -1,5 +1,7 @@
 // ==============================
 // CARGAR PRODUCTOS DINÁMICOS
+// Obtiene catálogos+productos desde /ProdCat y
+// crea tarjetas dentro de cada sección (Trendy/Montoc/Milagros)
 // ==============================
 window.addEventListener('DOMContentLoaded', function () {
   fetch('/ProdCat', { method: 'GET' })
@@ -46,6 +48,7 @@ window.addEventListener('DOMContentLoaded', function () {
 
 // ==============================
 // ANIMACIÓN DE HEADER Y SCROLL
+// Cambia estilo del header al hacer scroll y revela secciones con data-animate
 // ==============================
 const header = document.getElementById("header");
 window.addEventListener("scroll", () => {
@@ -85,6 +88,7 @@ document.querySelectorAll(".nav-link").forEach((link) => {
 
 // ==============================
 // SISTEMA DE CARRITO
+// Carrito en memoria: agrega productos, calcula total y permite comprar
 // ==============================
 const cartBtn = document.getElementById("cart-btn");
 const cartModal = document.getElementById("cart-modal");
@@ -141,7 +145,7 @@ closeCart.onclick = () => {
 
 clearCart.onclick = () => { cart = []; updateCart(); };
 
-/* COMPRAR EN PAGINA */
+/* COMPRAR EN PAGINA: envía carrito al backend (requiere sesión iniciada) */
 buyBtn.onclick = async () => {
   if (cart.length === 0) {
     Swal.fire({
@@ -209,6 +213,7 @@ buyBtn.onclick = async () => {
 
 // ==============================
 // CARRUSEL CON FLECHAS + ANIMACIÓN
+// Reconstruye el contenedor para mostrar 4 ítems a la vez y auto-avanza
 // ==============================
 function initCarruseles() {
   document.querySelectorAll("section").forEach(section => {

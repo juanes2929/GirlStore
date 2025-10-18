@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
-  <!-- HEADER -->
+  <!-- HEADER: navegación por secciones del panel de administración. -->
   <header id="header">
     <div class="logo">GirlStore</div>
     <nav>
@@ -25,6 +25,7 @@
 
     <button class="cart-btn" id="cart-btn"><i class="fa-solid fa-cart-shopping"></i> <span id="cart-count">0</span> Carrito</button>
   </header>
+    <!-- CATÁLOGOS: CRUD de catálogos -->
     <section id="admin">
     <h2>Gestión de Catálogo</h2>
 
@@ -70,7 +71,7 @@
     </div>
     </section>
 
-    <!-- === PRODUCTOS === -->
+    <!-- === PRODUCTOS: CRUD con paginación y ordenamiento === -->
     <section id="productos" style="display: none;">
     <h2>Gestión de Productos</h2>
 
@@ -134,7 +135,7 @@
     </div>
     </section>
 
-    <!-- === USUARIOS === -->
+    <!-- === USUARIOS: CRUD de usuarios y control de rol === -->
     <section id="usuarios" style="display: none;">
     <h2>Gestión de Usuarios</h2>
 
@@ -198,7 +199,7 @@
     </div>
     </section>
 
-    <!-- === VENTAS === -->
+    <!-- === VENTAS: listado, detalle y creación/edición de ventas === -->
     <section id="ventas" style="display: none;">
     <h2>Gestión de Ventas</h2>
 
@@ -291,7 +292,7 @@
     </div>
     </section>
 
-    <!-- ==================== REPORTES ==================== -->
+    <!-- ==================== REPORTES: descarga de PDFs ==================== -->
     <section id="Reportes" class="section hidden" >
         <div class="reporte-container">
             <img src="{{ url_for('static', filename='img/maquillaje.png') }}" class="logo-reporte" alt="GirlStore">

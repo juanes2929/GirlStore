@@ -1,4 +1,4 @@
-
+// JS del registro: envía el formulario como FormData a /registro
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.querySelector(".register-form");
 

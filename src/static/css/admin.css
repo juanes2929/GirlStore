@@ -1,3 +1,4 @@
+/* Variables de color y radios para tema del panel */
 :root {
   --primary: #e62e7a;
   --secondary: #f8cdd5;
@@ -6,6 +7,7 @@
   --radius: 16px;
 }
 
+/* Reset y tipografía base */
 * {
   margin: 0;
   padding: 0;
@@ -20,6 +22,7 @@ body {
 }
 
 
+/* Header fijo y transición */
 header {
   position: fixed;
   top: 0;
@@ -114,7 +117,7 @@ section h2::after {
   border-radius: 2px;
 }
 
-/* ======= ADMIN TABLE ======= */
+/* ======= ADMIN TABLE: tabla general de CRUDs ======= */
 .table-container {
   overflow-x: auto;
   margin-top: 20px;
@@ -157,7 +160,7 @@ section h2::after {
   transform: scale(1.2);
 }
 
-/* ======= MODAL ======= */
+/* ======= MODAL: base para formularios emergentes ======= */
 .modal {
   position: fixed;
   top: 0;
@@ -284,7 +287,7 @@ footer {
   box-shadow: 0 0 4px rgba(230, 46, 122, 0.3);
 }
 
-/* Paginación */
+/* Paginación: controles de cambio de página */
 .pagination {
   display: flex;
   justify-content: center;
@@ -313,7 +316,7 @@ footer {
   color: white;
 }
 
-/* Orden en encabezados */
+/* Orden en encabezados (sortable) */
 th.sortable {
   cursor: pointer;
   user-select: none;

@@ -1,10 +1,21 @@
-import mysql.connector as MsqlCon
+import mysql.connector as MsqlCon  # Conector oficial de MySQL para Python
 
 class ConnectionDB:
+    """Capa simple de acceso a datos para MySQL.
+
+    Responsable de:
+    - Centralizar credenciales de conexión.
+    - Abrir conexiones y devolver (conn, cursor).
+    - Ejecutar consultas de lectura (SELECT) y escritura (INSERT/UPDATE/DELETE).
+    """
     def __init__(self):
         self.cursor = None
 
     def get_data_conection(self):
+        """Devuelve las credenciales de conexión a la base de datos.
+
+        NOTA: Para producción, mover a variables de entorno en vez de hardcodear.
+        """
         return {
             "dataBaseInfo": {
                 "user": "root",
@@ -16,6 +27,11 @@ class ConnectionDB:
         }
 
     def iniciarConexion(self):
+        """Abre una conexión a MySQL y retorna (conn, cursor).
+
+        El `cursor` permite ejecutar sentencias SQL. Quien lo use debe
+        cerrar `conn` al terminar (commit/rollback según corresponda).
+        """
         dataConnecton = self.get_data_conection()
         try:
             conn = MsqlCon.connect(
@@ -29,9 +45,14 @@ class ConnectionDB:
             self.cursor = conn.cursor()
             return conn, self.cursor
         except Exception as e:
+            # En un escenario real, registrar el error con más detalle
             print(f"{self.__class__.__name__}: Problemas de conexion")
 
     def doQuery(self, cursor, query: str, params=()) -> dict:
+        """Ejecuta una consulta SELECT y retorna todas las filas.
+
+        Usa parámetros para prevenir inyección SQL.
+        """
         try:
             if params:
                 cursor.execute(query, params)
@@ -44,6 +65,10 @@ class ConnectionDB:
             return {"error": str(e)}
 
     def insert_users(self, username, phone, email, pswd, direction, admin, *args):
+        """Inserta un usuario en la tabla Users.
+
+        Realiza commit en éxito o rollback en excepción.
+        """
         try:
             conn, cursor = self.iniciarConexion()
             try:
@@ -66,6 +91,12 @@ class ConnectionDB:
             return {"success": False, "message": "Problemas de conexión"}
 
     def get_cat_products(self, *args):
+        """Obtiene catálogos con sus productos (LEFT JOIN).
+
+        Retorna una lista de tuplas: (Id_producto, Name_product, Img, Price,
+        IsActive, Id_cat, Id_catalogo, Name_catalogo). Cuando no hay producto,
+        los campos de producto pueden venir como None.
+        """
         try:
             conn, cursor = self.iniciarConexion()
             fullcat = None
